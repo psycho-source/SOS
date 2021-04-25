@@ -1,8 +1,13 @@
 package com.tarun.sos
 
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
+import android.media.AudioManager
+import android.media.MediaPlayer
+import android.media.RingtoneManager
+import android.net.Uri
 import android.os.Bundle
 import android.telephony.SmsManager
 import androidx.appcompat.app.AppCompatActivity
@@ -51,6 +56,11 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
     }
     private val bottomAppBar: BottomAppBar by lazy { findViewById(R.id.bottom_app_bar) }
     private val sendSos: FloatingActionButton by lazy { findViewById(R.id.sos_button) }
+    private val sendAlarm: FloatingActionButton by lazy { findViewById(R.id.alarm_button) }
+    private val alarmSound: Uri by lazy { RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE) }
+    private val mp: MediaPlayer by lazy { MediaPlayer.create(this, alarmSound) }
+    private val am: AudioManager by lazy { getSystemService(Context.AUDIO_SERVICE) as AudioManager }
+    private var currentAudioVolume: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,6 +74,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
         val mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
+        currentAudioVolume = am.getStreamVolume(AudioManager.STREAM_MUSIC)
+
         bottomAppBar.setNavigationOnClickListener {
             showNavigationDrawer.show(supportFragmentManager, "BottomNavigationSheet")
         }
@@ -72,11 +84,26 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
             enableSMSSending()
         }
 
+        sendAlarm.setOnClickListener {
+            enableAlarm()
+        }
+
     }
 
     override fun onMapReady(p0: GoogleMap?) {
         map = p0 ?: return
         enableMyLocation()
+    }
+
+    private fun enableAlarm() {
+        if (mp.isPlaying) {
+            mp.stop()
+            am.setStreamVolume(AudioManager.STREAM_MUSIC, currentAudioVolume, 0)
+        } else {
+            am.setStreamVolume(AudioManager.STREAM_MUSIC, am.getStreamMaxVolume(AudioManager.STREAM_MUSIC), 0)
+            mp.isLooping = true
+            mp.start()
+        }
     }
 
     private fun enableMyLocation() {

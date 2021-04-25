@@ -30,4 +30,15 @@
         app:srcCompat="@drawable/ic_sos"
         app:tint="?colorPrimary" />
 
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/alarm_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="64dp"
+        android:layout_marginEnd="8dp"
+        android:layout_gravity="end"
+        app:backgroundTint="@color/colorDanger"
+        app:srcCompat="@drawable/ic_alarm"
+        app:tint="?colorPrimary" />
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
