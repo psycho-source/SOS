@@ -10,6 +10,7 @@ import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Bundle
 import android.telephony.SmsManager
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -35,6 +36,12 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
         private const val LOCATION_PERMISSION_REQUEST_CODE = 1
         private const val SMS_PERMISSION_REQUEST_CODE = 2
         lateinit var emergencyContacts: ArrayList<EmergencyContacts>
+        val showPermissionError: DrawRoundedBottomSheet by lazy {
+            DrawRoundedBottomSheet(
+                PermissionErrorDialog(),
+                "PermissionError"
+            )
+        }
     }
 
     private var locationPermissionDenied = false
@@ -46,12 +53,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
         DrawRoundedBottomSheet(
             BottomNavigationDrawer(),
             "BottomNavigation"
-        )
-    }
-    private val showPermissionError: DrawRoundedBottomSheet by lazy {
-        DrawRoundedBottomSheet(
-            PermissionErrorDialog(),
-            "PermissionError"
         )
     }
     private val bottomAppBar: BottomAppBar by lazy { findViewById(R.id.bottom_app_bar) }
@@ -97,11 +98,12 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
 
     private fun enableAlarm() {
         if (mp.isPlaying) {
-            mp.stop()
+            mp.pause()
             am.setStreamVolume(AudioManager.STREAM_MUSIC, currentAudioVolume, 0)
         } else {
             am.setStreamVolume(AudioManager.STREAM_MUSIC, am.getStreamMaxVolume(AudioManager.STREAM_MUSIC), 0)
             mp.isLooping = true
+            mp.seekTo(0)
             mp.start()
         }
     }
@@ -126,14 +128,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
                             )
                         )
                     } else {
-                        val sb = Snackbar.make(
-                            this,
-                            findViewById(R.id.root_layout),
-                            "Failed to get current location. Please enable Location from Settings",
-                            Snackbar.LENGTH_INDEFINITE
-                        )
-                        sb.animationMode = Snackbar.ANIMATION_MODE_SLIDE
-                        sb.show()
+                        showPermissionError.show(supportFragmentManager, "PermissionError")
                     }
                 }
         } else {
@@ -205,6 +200,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
 
     override fun onResumeFragments() {
         super.onResumeFragments()
+        enableMyLocation()
         if (locationPermissionDenied) {
             showPermissionError.show(supportFragmentManager, "PermissionError")
             locationPermissionDenied = false

@@ -4,10 +4,54 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
+    <ImageView
+        android:id="@+id/icon_error"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:src="@drawable/ic_error"
+        app:tint="@color/colorDanger"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
     <TextView
+        android:id="@+id/text_error"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Location Permission Required! ERROR"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:layout_marginTop="16dp"
+        android:text="Your device needs to have Location turned on for the application to work correctly."
+        android:textAlignment="center"
+        app:layout_constraintTop_toBottomOf="@id/icon_error"/>
+
+    <TextView
+        android:id="@+id/settings_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="8dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?selectableItemBackground"
+        android:text="Open Settings"
+        style="@style/TextAppearance.AppCompat.Widget.Button.Borderless.Colored"
+        app:layout_constraintTop_toBottomOf="@id/text_error"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <TextView
+        android:id="@+id/close_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="8dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?selectableItemBackground"
+        android:text="EXIT"
+        android:textColor="@color/colorDanger"
+        style="@style/TextAppearance.AppCompat.Widget.Button.Borderless.Colored"
+        app:layout_constraintTop_toBottomOf="@id/text_error"
+        app:layout_constraintStart_toStartOf="parent"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
