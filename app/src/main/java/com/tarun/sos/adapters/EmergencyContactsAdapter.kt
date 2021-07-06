@@ -2,6 +2,7 @@ package com.tarun.sos.adapters
 
 import android.app.AlertDialog
 import android.content.Context
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,10 +12,12 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
+import com.tarun.sos.MainActivity
 import com.tarun.sos.R
 import com.tarun.sos.utils.EmergencyContacts
 import com.tarun.sos.utils.addNewContact
 import com.tarun.sos.utils.deleteContact
+import com.tarun.sos.utils.updateDefaultCall
 import de.hdodenhof.circleimageview.CircleImageView
 
 class EmergencyContactsAdapter(
@@ -40,12 +43,15 @@ class EmergencyContactsAdapter(
         private val contactName: TextView by lazy { view.findViewById(R.id.name_contact) }
         private val contactPhone: TextView by lazy { view.findViewById(R.id.number_contact) }
         private val contactDeleteButton: ImageView by lazy { view.findViewById(R.id.delete_contact) }
+        private val contactDefaultCall: ImageView by lazy { view.findViewById(R.id.default_contact) }
 
         fun bindView(position: Int) {
             val contact = adapter.contacts[position]
             contactImage.setImageResource(contact.image)
             contactName.text = contact.name
             contactPhone.text = contact.phone
+            contactDefaultCall.visibility =
+                if (contact.defaultCall) View.VISIBLE else View.GONE
             contactDeleteButton.visibility =
                 if (contact.deleteAvailable) View.VISIBLE else View.GONE
             if (contact.phone.isBlank()) contactPhone.visibility = View.GONE
@@ -82,12 +88,15 @@ class EmergencyContactsAdapter(
                         }
                         val newContact = EmergencyContacts(
                             adapter.contacts.size - 1,
-                            R.drawable.ic_default_contact,
+                            R.drawable.ic_default_person,
                             nameInput.text.toString(),
                             phoneInput.text.toString(),
-                            true
+                            deleteAvailable = (adapter.contacts.size != 1),
+                            defaultCall = (adapter.contacts.size == 1)
                         )
                         adapter.contacts.add(adapter.contacts.lastIndex, newContact)
+                        if (newContact.defaultCall)
+                            MainActivity.defaultCallingContact = newContact
                         adapter.notifyItemInserted(adapter.contacts.lastIndex - 1)
                         addNewContact(adapter.context, newContact)
                     }
@@ -110,6 +119,24 @@ class EmergencyContactsAdapter(
                         )
                     )
                 }
+            }
+
+            contactItemRow.setOnLongClickListener {
+                if (adapter.context != null && contact.id >= 0 && !contact.defaultCall) {
+                    if (MainActivity.defaultCallingContact != null) {
+                        val defaultContactPosition = adapter.contacts.indexOf(MainActivity.defaultCallingContact)
+                        adapter.contacts[defaultContactPosition].deleteAvailable = true
+                        adapter.contacts[defaultContactPosition].defaultCall = false
+                        adapter.notifyItemChanged(defaultContactPosition)
+                    }
+                    contact.deleteAvailable = false
+                    contact.defaultCall = true
+                    MainActivity.defaultCallingContact = contact
+                    adapter.contacts[position] = contact
+                    adapter.notifyItemChanged(position)
+                    updateDefaultCall(adapter.context, contact.id)
+                }
+                return@setOnLongClickListener true
             }
 
             contactDeleteButton.setOnClickListener {

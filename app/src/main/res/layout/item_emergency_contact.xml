@@ -1,17 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/contact_item_root"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:animateLayoutChanges="true"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?selectableItemBackground"
     android:paddingVertical="16dp">
 
     <de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/image_contact"
         android:layout_width="42dp"
         android:layout_height="42dp"
-        android:src="@drawable/ic_default_contact"
+        android:src="@drawable/ic_default_person"
         app:civ_border_color="?android:textColorPrimary"
         app:civ_border_width="1dp"
         app:civ_circle_background_color="@color/colorAccent"
@@ -50,6 +54,18 @@
             app:layout_constraintTop_toBottomOf="@id/name_contact" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <ImageView
+        android:id="@+id/default_contact"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:clickable="true"
+        android:focusable="true"
+        android:src="@drawable/ic_default_contact"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/delete_contact"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="@color/colorAccent" />
 
     <ImageView
         android:id="@+id/delete_contact"

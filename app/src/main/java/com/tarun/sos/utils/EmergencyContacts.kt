@@ -1,6 +1,7 @@
 package com.tarun.sos.utils
 
 import android.content.Context
+import android.util.Log
 import com.tarun.sos.R
 import org.json.JSONArray
 import org.json.JSONObject
@@ -10,7 +11,8 @@ data class EmergencyContacts(
     var image: Int,
     var name: String,
     var phone: String,
-    var deleteAvailable: Boolean
+    var deleteAvailable: Boolean,
+    var defaultCall: Boolean = false
 )
 
 const val EMERGENCY_CONTACTS_FILE: String = "EMERGENCY_CONTACTS_LIST"
@@ -24,10 +26,11 @@ fun getEmergencyContacts(context: Context): ArrayList<EmergencyContacts> {
         val contactObject = contactsJSON.getJSONObject(i)
         val contact = EmergencyContacts(
             i,
-            R.drawable.ic_default_contact,
+            R.drawable.ic_default_person,
             contactObject.getString("name"),
             contactObject.getString("phone"),
-            true
+            deleteAvailable = contactObject.getBoolean("deleteAvailable"),
+            defaultCall = contactObject.getBoolean("defaultCall")
         )
         contacts.add(contact)
     }
@@ -35,14 +38,36 @@ fun getEmergencyContacts(context: Context): ArrayList<EmergencyContacts> {
     return contacts
 }
 
+fun getEmergencyCallContact(context: Context): EmergencyContacts? {
+    val sharedPreferences =
+        context.getSharedPreferences(EMERGENCY_CONTACTS_FILE, Context.MODE_PRIVATE)
+    val contactsJSON = JSONArray(sharedPreferences.getString("contacts", "[]"))
+    for(i in 0 until contactsJSON.length()) {
+        val contactObject = contactsJSON.getJSONObject(i)
+        if(contactObject.getBoolean("defaultCall")) {
+            return EmergencyContacts(
+                i,
+                R.drawable.ic_default_person,
+                contactObject.getString("name"),
+                contactObject.getString("phone"),
+                deleteAvailable = contactObject.getBoolean("deleteAvailable"),
+                defaultCall = contactObject.getBoolean("defaultCall")
+            )
+        }
+    }
+    return null
+}
+
 fun addNewContact(context: Context, contact: EmergencyContacts) {
     val sharedPreferences =
         context.getSharedPreferences(EMERGENCY_CONTACTS_FILE, Context.MODE_PRIVATE)
     val contactsJSON = JSONArray(sharedPreferences.getString("contacts", "[]"))
     val contactObject = JSONObject()
-    contactObject.putOpt("id", contactsJSON.length())
-    contactObject.putOpt("name", contact.name)
-    contactObject.putOpt("phone", contact.phone)
+    contactObject.put("id", contactsJSON.length())
+    contactObject.put("name", contact.name)
+    contactObject.put("phone", contact.phone)
+    contactObject.put("deleteAvailable", contact.deleteAvailable)
+    contactObject.put("defaultCall", contact.defaultCall)
     contactsJSON.put(contactObject)
     with(sharedPreferences.edit()) {
         putString("contacts", contactsJSON.toString())
@@ -58,6 +83,36 @@ fun deleteContact(context: Context, id: Int) {
         val contact = contactsJSON.getJSONObject(i)
         if (contact.getInt("id") == id) {
             contactsJSON.remove(i)
+            break
+        }
+    }
+    with(sharedPreferences.edit()) {
+        putString("contacts", contactsJSON.toString())
+        commit()
+    }
+}
+
+fun updateDefaultCall(context: Context, id: Int) {
+    val sharedPreferences =
+        context.getSharedPreferences(EMERGENCY_CONTACTS_FILE, Context.MODE_PRIVATE)
+    val contactsJSON = JSONArray(sharedPreferences.getString("contacts", "[]"))
+    for (i in 0 until contactsJSON.length()) {
+        val contact = contactsJSON.getJSONObject(i)
+        if (contact.getBoolean("defaultCall")) {
+            contact.put("defaultCall", false)
+            contact.put("deleteAvailable", true)
+            contactsJSON.remove(i)
+            contactsJSON.put(contact)
+            break
+        }
+    }
+    for (i in 0 until contactsJSON.length()) {
+        val contact = contactsJSON.getJSONObject(i)
+        if (contact.getInt("id") == id) {
+            contact.put("defaultCall", true)
+            contact.put("deleteAvailable", false)
+            contactsJSON.remove(i)
+            contactsJSON.put(contact)
             break
         }
     }
