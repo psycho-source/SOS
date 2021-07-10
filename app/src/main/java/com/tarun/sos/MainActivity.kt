@@ -1,9 +1,13 @@
 package com.tarun.sos
 
 import android.Manifest
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
+import android.media.AudioManager
+import android.media.MediaPlayer
+import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Bundle
 import android.telephony.SmsManager
@@ -22,7 +26,6 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 import com.splunk.mint.Mint
 import com.tarun.sos.fragments.BottomNavigationDrawer
-import com.tarun.sos.fragments.PermissionErrorDialog
 import com.tarun.sos.utils.*
 
 class MainActivity : AppCompatActivity(), OnMapReadyCallback,
@@ -48,14 +51,13 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
             "BottomNavigation"
         )
     }
-    private val showPermissionError: DrawRoundedBottomSheet by lazy {
-        DrawRoundedBottomSheet(
-            PermissionErrorDialog(),
-            "PermissionError"
-        )
-    }
+
     private val bottomAppBar: BottomAppBar by lazy { findViewById(R.id.bottom_app_bar) }
     private val sendSos: FloatingActionButton by lazy { findViewById(R.id.sos_button) }
+    private val alarmSound: Uri by lazy { RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE) }
+    private val mp: MediaPlayer by lazy { MediaPlayer.create(this, alarmSound) }
+    private val am: AudioManager by lazy { getSystemService(Context.AUDIO_SERVICE) as AudioManager }
+    private var currentAudioVolume: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -70,13 +72,14 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
         val mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
+        currentAudioVolume = am.getStreamVolume(AudioManager.STREAM_MUSIC)
+
         bottomAppBar.setNavigationOnClickListener {
             showNavigationDrawer.show(supportFragmentManager, "BottomNavigationSheet")
         }
 
         sendSos.setOnClickListener {
-            enableSMSSending()
-            enableCalling()
+            enableAlarm()
         }
 
     }
@@ -84,6 +87,24 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
     override fun onMapReady(p0: GoogleMap?) {
         map = p0 ?: return
         enableMyLocation()
+    }
+
+    private fun enableAlarm() {
+        if (mp.isPlaying) {
+            mp.pause()
+            am.setStreamVolume(AudioManager.STREAM_MUSIC, currentAudioVolume, 0)
+        } else {
+            am.setStreamVolume(
+                AudioManager.STREAM_MUSIC,
+                am.getStreamMaxVolume(AudioManager.STREAM_MUSIC),
+                0
+            )
+            mp.isLooping = true
+            mp.seekTo(0)
+            mp.start()
+            enableSMSSending()
+            enableCalling()
+        }
     }
 
     private fun enableMyLocation() {
@@ -154,7 +175,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
         if (ContextCompat.checkSelfPermission(
                 this,
                 Manifest.permission.CALL_PHONE
-        ) == PackageManager.PERMISSION_GRANTED) {
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
             val callingContact = getEmergencyCallContact(this)
             if (callingContact != null && callingContact.phone.isNotBlank()) {
                 val callUri = Uri.parse("tel:${callingContact.phone}")
@@ -164,7 +186,12 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
                 startActivity(callIntent)
             }
         } else {
-            requestPermission(this, CALL_PERMISSION_REQUEST_CODE, Manifest.permission.CALL_PHONE, true)
+            requestPermission(
+                this,
+                CALL_PERMISSION_REQUEST_CODE,
+                Manifest.permission.CALL_PHONE,
+                true
+            )
         }
     }
 
@@ -206,7 +233,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
                         permissions,
                         grantResults,
                         Manifest.permission.CALL_PHONE
-                    )) {
+                    )
+                ) {
                     enableCalling()
                 } else {
                     callPermissionDenied = true
@@ -217,17 +245,39 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
 
     override fun onResumeFragments() {
         super.onResumeFragments()
+        enableMyLocation()
         when {
             locationPermissionDenied -> {
-                showPermissionError.show(supportFragmentManager, "PermissionError")
+                val sb = Snackbar.make(
+                    this,
+                    findViewById(R.id.root_layout),
+                    "Failed to get current location. Please enable Location from Settings",
+                    Snackbar.LENGTH_INDEFINITE
+                )
+                sb.animationMode = Snackbar.ANIMATION_MODE_SLIDE
+                sb.show()
                 locationPermissionDenied = false
             }
             smsPermissionDenied -> {
-                showPermissionError.show(supportFragmentManager, "PermissionError")
+                val sb = Snackbar.make(
+                    this,
+                    findViewById(R.id.root_layout),
+                    "Failed to send your current location to your contacts. Please enable SMS Permissions",
+                    Snackbar.LENGTH_INDEFINITE
+                )
+                sb.animationMode = Snackbar.ANIMATION_MODE_SLIDE
+                sb.show()
                 smsPermissionDenied = false
             }
             callPermissionDenied -> {
-                showPermissionError.show(supportFragmentManager, "PermissionError")
+                val sb = Snackbar.make(
+                    this,
+                    findViewById(R.id.root_layout),
+                    "Failed to call your emergency contact. Please enable Phone Permissions",
+                    Snackbar.LENGTH_INDEFINITE
+                )
+                sb.animationMode = Snackbar.ANIMATION_MODE_SLIDE
+                sb.show()
                 callPermissionDenied = false
             }
         }

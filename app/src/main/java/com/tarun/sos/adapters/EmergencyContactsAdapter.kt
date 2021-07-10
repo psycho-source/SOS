@@ -2,7 +2,6 @@ package com.tarun.sos.adapters
 
 import android.app.AlertDialog
 import android.content.Context
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -124,7 +123,8 @@ class EmergencyContactsAdapter(
             contactItemRow.setOnLongClickListener {
                 if (adapter.context != null && contact.id >= 0 && !contact.defaultCall) {
                     if (MainActivity.defaultCallingContact != null) {
-                        val defaultContactPosition = adapter.contacts.indexOf(MainActivity.defaultCallingContact)
+                        val defaultContactPosition =
+                            adapter.contacts.indexOf(MainActivity.defaultCallingContact)
                         adapter.contacts[defaultContactPosition].deleteAvailable = true
                         adapter.contacts[defaultContactPosition].defaultCall = false
                         adapter.notifyItemChanged(defaultContactPosition)

@@ -1,7 +1,6 @@
 package com.tarun.sos.utils
 
 import android.content.Context
-import android.util.Log
 import com.tarun.sos.R
 import org.json.JSONArray
 import org.json.JSONObject
@@ -42,9 +41,9 @@ fun getEmergencyCallContact(context: Context): EmergencyContacts? {
     val sharedPreferences =
         context.getSharedPreferences(EMERGENCY_CONTACTS_FILE, Context.MODE_PRIVATE)
     val contactsJSON = JSONArray(sharedPreferences.getString("contacts", "[]"))
-    for(i in 0 until contactsJSON.length()) {
+    for (i in 0 until contactsJSON.length()) {
         val contactObject = contactsJSON.getJSONObject(i)
-        if(contactObject.getBoolean("defaultCall")) {
+        if (contactObject.getBoolean("defaultCall")) {
             return EmergencyContacts(
                 i,
                 R.drawable.ic_default_person,
