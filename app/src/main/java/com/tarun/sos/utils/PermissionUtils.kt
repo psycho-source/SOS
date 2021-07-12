@@ -26,3 +26,14 @@ fun requestPermission(
         requestId
     )
 }
+
+fun requestPermissions(
+    activity: AppCompatActivity, requestId: Int,
+    permissions: Array<String>
+) {
+    ActivityCompat.requestPermissions(
+        activity,
+        permissions,
+        requestId
+    )
+}

@@ -56,7 +56,7 @@ class EmergencyContactsAdapter(
             if (contact.phone.isBlank()) contactPhone.visibility = View.GONE
 
             contactItemRow.setOnClickListener {
-                if (adapter.context != null && !contact.deleteAvailable) {
+                if (adapter.context != null && contact.id < 0) {
                     val alertDialogBuilder = AlertDialog.Builder(adapter.context)
                     alertDialogBuilder.setTitle("Add New Contact")
                     val dialogView = LayoutInflater.from(adapter.context)

@@ -66,6 +66,17 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
 
         setContentView(R.layout.activity_main)
 
+        if (!isFirstStart(this)) {
+            val sb = Snackbar.make(
+                this,
+                findViewById(R.id.root_layout),
+                "Tap the button to send SOS!",
+                Snackbar.LENGTH_LONG
+            )
+            sb.animationMode = Snackbar.ANIMATION_MODE_SLIDE
+            sb.show()
+        }
+
         emergencyContacts = getEmergencyContacts(this)
         defaultCallingContact = getEmergencyCallContact(this)
 
@@ -131,7 +142,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
                             this,
                             findViewById(R.id.root_layout),
                             "Failed to get current location. Please enable Location from Settings",
-                            Snackbar.LENGTH_INDEFINITE
+                            Snackbar.LENGTH_LONG
                         )
                         sb.animationMode = Snackbar.ANIMATION_MODE_SLIDE
                         sb.show()
@@ -200,6 +211,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
         permissions: Array<String>,
         grantResults: IntArray
     ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode != LOCATION_PERMISSION_REQUEST_CODE && requestCode != SMS_PERMISSION_REQUEST_CODE && requestCode != CALL_PERMISSION_REQUEST_CODE) {
             return
         }

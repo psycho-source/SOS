@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">SOS</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="permissions_desc"><b>SMS : </b>For sending SMS to your emergency contacts.\n\n<b>Phone : </b>For dialing your emergency contact.\n\n<b>Location : </b>For getting the current location to send to your emergency contacts.</string>
+    <string name="add_contact_desc">Start by adding your first emergency Contact here.</string>
+    <string name="add_contact_desc_small">(This contact will also become your default calling contact. You can change your default calling contact later by long pressing any contact!)</string>
 </resources>
